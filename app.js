@@ -54,47 +54,60 @@ function takeCommand(message) {
     if (message.includes('hey') || message.includes('hello')) {
         speak("Hello Sir, How May I Help You?");
     
-    }
-    else if
-        (message.includes("tell me about your owner")){
-        speak("My owner is Neha Verma,She is currently pursing her B teach computer science degree from chandigarh university");
-    }
-
-     else if (message.includes("open google")) {
+    } else if (message.includes("tell me about your owner")) {
+        speak("My owner is Neha Verma, She is currently pursuing her B.Tech in Computer Science from Chandigarh University.");
+    
+    } else if (message.includes("open google")) {
         window.open("https://google.com", "_blank");
         speak("Opening Google...");
+    
     } else if (message.includes("open youtube")) {
         window.open("https://youtube.com", "_blank");
         speak("Opening Youtube...");
+    
     } else if (message.includes("open facebook")) {
         window.open("https://facebook.com", "_blank");
         speak("Opening Facebook...");
+    
     } else if (message.includes('what is') || message.includes('who is') || message.includes('what are')) {
         window.open(`https://www.google.com/search?q=${message.replace(" ", "+")}`, "_blank");
         const finalText = "This is what I found on the internet regarding " + message;
         speak(finalText);
+    
     } else if (message.includes('wikipedia')) {
         window.open(`https://en.wikipedia.org/wiki/${message.replace("wikipedia", "").trim()}`, "_blank");
         const finalText = "This is what I found on Wikipedia regarding " + message;
         speak(finalText);
+    
     } else if (message.includes('time')) {
         const time = new Date().toLocaleString(undefined, { hour: "numeric", minute: "numeric" });
         const finalText = "The current time is " + time;
         speak(finalText);
+    
     } else if (message.includes('date')) {
         const date = new Date().toLocaleString(undefined, { month: "short", day: "numeric" });
         const finalText = "Today's date is " + date;
         speak(finalText);
+    
     } else if (message.includes('weather')) {
-        fetchWeatherData();
+        const city = message.split('in')[1]?.trim();
+        if (city) {
+            fetchWeatherData(city);
+        } else {
+            fetchWeatherDataForCurrentLocation();
+        }
+    
     } else if (message.includes('news')) {
         fetchNewsData();
+    
     } else if (message.includes('joke')) {
         tellJoke();
+    
     } else if (message.includes('calculator')) {
         window.open('Calculator:///');
         const finalText = "Opening Calculator";
         speak(finalText);
+    
     } else {
         window.open(`https://www.google.com/search?q=${message.replace(" ", "+")}`, "_blank");
         const finalText = "I found some information for " + message + " on Google";
@@ -102,9 +115,8 @@ function takeCommand(message) {
     }
 }
 
-function fetchWeatherData() {
+function fetchWeatherData(city) {
     const apiKey = '45c4d3b08c9faf50885a017b6fb0c649';  
-    const city = 'chandigarh';  
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
 
     fetch(url)
@@ -119,8 +131,35 @@ function fetchWeatherData() {
         });
 }
 
+function fetchWeatherDataForCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const { latitude, longitude } = position.coords;
+            const apiKey = '45c4d3b08c9faf50885a017b6fb0c649';  
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const city = data.name;
+                    const finalText = `The current weather in ${city} is ${data.weather[0].description} with a temperature of ${data.main.temp} degrees Celsius.`;
+                    speak(finalText);
+                })
+                .catch(error => {
+                    console.error('Error fetching weather data:', error);
+                    speak('Sorry, I could not fetch the weather data.');
+                });
+        }, error => {
+            console.error('Error getting location:', error);
+            speak('Sorry, I could not get your location.');
+        });
+    } else {
+        speak('Geolocation is not supported by this browser.');
+    }
+}
+
 function fetchNewsData() {
-    const apiKey = 'e88cb531790f4e158fa987a27325d337';  // Replace with your NewsAPI API key
+    const apiKey = 'e88cb531790f4e158fa987a27325d337';  
     const url = `https://newsapi.org/v2/top-headlines?country=us&apiKey=${apiKey}`;
 
     fetch(url)
